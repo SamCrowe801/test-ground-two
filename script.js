@@ -107,4 +107,51 @@
       el.classList.add('visible');
     });
   }
+
+  // ---------- Contact Form Submission ----------
+  var contactForm = document.getElementById('contactForm');
+  var formStatus = document.getElementById('formStatus');
+  var formSubmitBtn = document.getElementById('formSubmitBtn');
+
+  if (contactForm) {
+    contactForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var originalText = formSubmitBtn.innerHTML;
+      formSubmitBtn.innerHTML = 'Sending...';
+      formSubmitBtn.disabled = true;
+      formStatus.textContent = '';
+      formStatus.className = 'form-status';
+
+      var formData = new FormData(contactForm);
+
+      fetch(contactForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function (response) {
+        if (response.ok) {
+          formStatus.textContent = 'Message sent successfully. I will be in touch shortly.';
+          formStatus.className = 'form-status success';
+          contactForm.reset();
+        } else {
+          return response.json().then(function (data) {
+            if (data.errors) {
+              throw new Error(data.errors.map(function (err) { return err.message; }).join(', '));
+            }
+            throw new Error('Submission failed. Please try again.');
+          });
+        }
+      })
+      .catch(function (err) {
+        formStatus.textContent = err.message || 'Something went wrong. Please email Samuel@thecrowells.com directly.';
+        formStatus.className = 'form-status error';
+      })
+      .finally(function () {
+        formSubmitBtn.innerHTML = originalText;
+        formSubmitBtn.disabled = false;
+      });
+    });
+  }
 })();
